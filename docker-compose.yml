@@ -1,7 +1,6 @@
 version: "3.8"
 
 services:
-  # База для product
   product-db:
     image: postgres:15
     environment:
@@ -14,39 +13,10 @@ services:
     ports:
       - "5432:5432"
 
-  # База для order
-  order-db:
-    image: postgres:15
-    environment:
-      POSTGRES_DB: lampshop_orders
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: secret
-    volumes:
-      - order-data:/var/lib/postgresql/data
-      - ./migrations/orders:/docker-entrypoint-initdb.d
-    ports:
-      - "5433:5432"
-
-  # База для admin
-  admin-db:
-    image: postgres:15
-    environment:
-      POSTGRES_DB: lampshop_admin
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: secret
-    volumes:
-      - admin-data:/var/lib/postgresql/data
-      - ./migrations/admin:/docker-entrypoint-initdb.d
-    ports:
-      - "5434:5432"
-
-  # Сервис product
-  product:
+  product-service:
     build:
       context: .
-      dockerfile: ./docker/product/Dockerfile
-      args:
-        BUILD_ENV: production
+      dockerfile: ./product/build/package/Dockerfile
     depends_on:
       - product-db
     environment:
@@ -58,46 +28,7 @@ services:
       PORT: 8081
     ports:
       - "8081:8081"
-
-  # Сервис order
-  order:
-    build:
-      context: .
-      dockerfile: ./docker/order/Dockerfile
-    depends_on:
-      - order-db
-    environment:
-      DB_HOST: order-db
-      DB_PORT: 5432
-      DB_USER: postgres
-      DB_PASSWORD: secret
-      DB_NAME: lampshop_orders
-      PORT: 8082
-    ports:
-      - "8082:8082"
-
-  # Сервис admin
-  admin:
-    build:
-      context: .
-      dockerfile: ./docker/admin/Dockerfile
-    depends_on:
-      - product
-      - order
-      - admin-db
-    environment:
-      DB_HOST: admin-db
-      DB_PORT: 5432
-      DB_USER: postgres
-      DB_PASSWORD: secret
-      DB_NAME: lampshop_admin
-      CATALOG_URL: http://product:8081
-      ORDER_URL:   http://order:8082
-      PORT:        8083
-    ports:
-      - "8083:8083"
+    container_name: lampshop-product
 
 volumes:
   product-data:
-  order-data:
-  admin-data:

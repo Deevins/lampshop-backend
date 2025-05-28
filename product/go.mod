@@ -1,4 +1,4 @@
-module github.com/Deevins/lampshop-backend
+module github.com/Deevins/lampshop-backend/product
 
 go 1.23
 

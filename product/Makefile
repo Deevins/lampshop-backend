@@ -1,6 +1,3 @@
-# Makefile for gRPC code generation
-# Генерирует .pb.go в структуре, заданной go_package в .proto
-
 OUT_DIR := gen
 PROTO_DIR := api
 PROTO_FILES := $(shell find $(PROTO_DIR) -type f -name "*.proto")
@@ -10,7 +7,6 @@ PROTO_FILES := $(shell find $(PROTO_DIR) -type f -name "*.proto")
 # По умолчанию генерируем все
 all: protos
 
-# Основной таргет: создаём OUT_DIR и запускаем protoc на всех .proto
 protos: | ensure-out-dir
 	@echo "[proto] Generating Go code for all .proto files..."
 	protoc \
