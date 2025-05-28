@@ -20,7 +20,6 @@
 # Go module files
 /go.sum
 
-# Editor and IDE files
 .idea/
 .vscode/
 *.swp

@@ -1,6 +1,7 @@
 syntax = "proto3";
 
 package product.v1;
+option go_package = "github.com/Deevins/lampshop-backend/product/v1;productv1";
 
 service ProductService {
   rpc ListProducts (ListProductsRequest) returns (ListProductsResponse) {}
