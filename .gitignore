@@ -15,11 +15,13 @@
 /vendor/
 
 # Generated protobuf files directory
-/gen/
+#/gen/
 
 # Go module files
 /go.sum
 
+.DS_Store
 .idea/
+.idea
 .vscode/
 *.swp
