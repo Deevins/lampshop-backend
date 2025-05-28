@@ -1,0 +1,26 @@
+# Binaries for programs and plugins
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Test binary, build output
+*.test
+
+# Output of the go coverage tool
+*.out
+
+# Dependency directories
+/vendor/
+
+# Generated protobuf files directory
+/gen/
+
+# Go module files
+/go.sum
+
+# Editor and IDE files
+.idea/
+.vscode/
+*.swp
