@@ -9,8 +9,8 @@ import (
 )
 
 func main() {
-	srv := grpc_server.New("8081")
 
+	srv := grpc_server.New("8081")
 	productAPI := grpc2.NewProductAPI()
 
 	if err := srv.Start(
