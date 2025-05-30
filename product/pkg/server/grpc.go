@@ -1,4 +1,4 @@
-package grpc_server
+package server
 
 import (
 	"log"
@@ -12,7 +12,7 @@ type GRPCServer struct {
 	Options []grpc.ServerOption
 }
 
-func New(port string, opts ...grpc.ServerOption) *GRPCServer {
+func NewGRPC(port string, opts ...grpc.ServerOption) *GRPCServer {
 	return &GRPCServer{
 		Port:    port,
 		Options: opts,
