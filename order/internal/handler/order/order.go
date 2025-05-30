@@ -2,22 +2,11 @@ package order
 
 import (
 	"github.com/Deevins/lampshop-backend/order/internal/model"
+	"github.com/Deevins/lampshop-backend/order/pkg/logger"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"net/http"
 )
-
-func (h *Handler) Register(r *gin.RouterGroup) {
-	orders := r.Group("/orders")
-	{
-		orders.GET("", h.GetAllOrders)
-		orders.GET("/active", h.GetActiveOrders)
-		orders.GET("/:id/status", h.GetOrderStatus)
-	}
-	r.POST("/checkout", h.CreateOrder)
-}
-
-// --- Handlers ---
 
 func (h *Handler) GetAllOrders(c *gin.Context) {
 	orders, err := h.service.GetAllOrders(c.Request.Context())
@@ -59,6 +48,7 @@ func (h *Handler) GetOrderStatus(c *gin.Context) {
 func (h *Handler) CreateOrder(c *gin.Context) {
 	var req model.CreateOrderRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
+		logger.Log.Errorw("failed to bind create order request", "error", err)
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid request"})
 		return
 	}
@@ -70,6 +60,7 @@ func (h *Handler) CreateOrder(c *gin.Context) {
 
 	err := h.service.CreateOrder(c.Request.Context(), req)
 	if err != nil {
+		logger.Log.Errorw("failed to bind create order request", "error", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to create order"})
 		return
 	}

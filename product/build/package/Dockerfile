@@ -1,23 +1,20 @@
-# Stage 1: build
+# Stage 1: Build
 FROM golang:1.23-alpine AS builder
+
 WORKDIR /app
 
-COPY product/go.mod product/go.sum ./product/
-WORKDIR /app/product
+COPY go.mod go.sum ./
 RUN go mod download
 
-WORKDIR /app
-COPY product/ ./product/
+COPY . .
 
-RUN CGO_ENABLED=0 GOOS=linux go build -o product-service ./product/cmd/product/main.go
+# 👇 правильный путь к main.go
+RUN CGO_ENABLED=0 GOOS=linux go build -o product-service ./cmd/product/main.go
 
-# Stage 2: runtime
+# Stage 2: Runtime
 FROM alpine:latest
 WORKDIR /app
-
-# Копируем скомпилированный бинарник
-COPY --from=builder /app/product-service ./product-service
+COPY --from=builder /app/product-service .
 
 EXPOSE 8081
-
 ENTRYPOINT ["./product-service"]

@@ -1,23 +1,20 @@
-# Stage 1: build
+# Stage 1: Build
 FROM golang:1.23-alpine AS builder
+
 WORKDIR /app
 
-COPY order/go.mod order/go.sum ./order/
-WORKDIR /app/order
+COPY go.mod go.sum ./
 RUN go mod download
 
-WORKDIR /app
-COPY order/ ./order/
+COPY . .
 
-RUN CGO_ENABLED=0 GOOS=linux go build -o order-service ./order/cmd/order/main.go
+# 👇 правильный путь к main.go
+RUN CGO_ENABLED=0 GOOS=linux go build -o order-service ./cmd/order/main.go
 
-# Stage 2: runtime
+# Stage 2: Runtime
 FROM alpine:latest
 WORKDIR /app
+COPY --from=builder /app/order-service .
 
-# Копируем скомпилированный бинарник
-COPY --from=builder /app/order-service ./order-service
-
-EXPOSE 8081
-
+EXPOSE 8082
 ENTRYPOINT ["./order-service"]

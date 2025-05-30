@@ -1,53 +1,34 @@
 version: "3.8"
 
 services:
-  # --- PRODUCT SERVICE ---
-  product-db:
-    image: postgres:15
-    environment:
-      POSTGRES_DB: lampshop_products
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: secret
-    volumes:
-      - product-data:/var/lib/postgresql/data
-      - ./migrations/products:/docker-entrypoint-initdb.d
-    ports:
-      - "5432:5432"
-
-  product-service:
-    build:
-      context: .
-      dockerfile: ./product/build/package/Dockerfile
-    depends_on:
-      - product-db
-    environment:
-      DB_HOST: product-db
-      DB_PORT: 5432
-      DB_USER: postgres
-      DB_PASSWORD: secret
-      DB_NAME: lampshop_products
-      PORT: 8081
-    ports:
-      - "8081:8081"
-    container_name: lampshop-product
-
-  # --- ORDER SERVICE ---
   order-db:
     image: postgres:15
     environment:
       POSTGRES_DB: lampshop_orders
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: secret
+    ports:
+      - "5434:5432"
     volumes:
       - order-data:/var/lib/postgresql/data
       - ./migrations/orders:/docker-entrypoint-initdb.d
+
+  product-db:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: lampshop_products
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: secret
     ports:
-      - "5434:5432" # Обрати внимание: хост-порт 5434, чтобы не конфликтовать с product-db
+      - "5432:5432"
+    volumes:
+      - product-data:/var/lib/postgresql/data
+      - ./migrations/products:/docker-entrypoint-initdb.d
 
   order-service:
     build:
-      context: .
-      dockerfile: ./order/build/package/Dockerfile
+      context: ./order
+      dockerfile: build/package/Dockerfile
     depends_on:
       - order-db
     environment:
@@ -59,8 +40,23 @@ services:
       PORT: 8082
     ports:
       - "8082:8082"
-    container_name: lampshop-order
+#
+  product-service:
+    build:
+      context: ./product
+      dockerfile: build/package/Dockerfile
+    depends_on:
+      - product-db
+    environment:
+      DB_HOST: product-db
+      DB_PORT: 5432
+      DB_USER: postgres
+      DB_PASSWORD: secret
+      DB_NAME: lampshop_products
+      PORT: 8081
+    ports:
+      - "8081:8081"
 
 volumes:
-  product-data:
   order-data:
+  product-data:

@@ -20,13 +20,13 @@ func main() {
 	var (
 		ctx = context.Background()
 	)
-	logger.Init(true) // true = dev mode (читаемый вывод)
+	logger.Init(true)
 
-	if err := initConfig(); err != nil {
-		log.Fatalf("can not read config file %s", err.Error())
-	}
+	//if err := initConfig(); err != nil {
+	//	log.Fatalf("can not read config file %s", err.Error())
+	//}
 
-	pool, err := pgxpool.New(ctx, "postgres://postgres:secret@localhost:5434/lampshop_orders?sslmode=disable")
+	pool, err := pgxpool.New(ctx, "postgres://postgres:secret@order-db:5432/lampshop_orders?sslmode=disable")
 	if err != nil {
 		log.Fatalf("cannot connect to db: %v", err)
 	}
@@ -38,12 +38,12 @@ func main() {
 	router := h.InitRoutes()
 
 	srv := &http.Server{
-		Addr:    viper.GetString("http_server.port"),
+		Addr:    ":8082",
 		Handler: router,
 	}
 
 	go func() {
-		logger.Log.Infof("Server running on %s", viper.GetString("http_server.port"))
+		logger.Log.Infof("Server running on %s", ":8082")
 		if err := srv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
 			logger.Log.Fatalf("listen: %s", err)
 		}
