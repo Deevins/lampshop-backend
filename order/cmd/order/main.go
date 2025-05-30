@@ -3,8 +3,10 @@ package main
 import (
 	"context"
 	"errors"
-	"github.com/Deevins/lampshop-backend/product/internal/handler/order"
-	"github.com/Deevins/lampshop-backend/product/pkg/logger"
+	"github.com/Deevins/lampshop-backend/order/internal/handler/order"
+	"github.com/Deevins/lampshop-backend/order/internal/service"
+	"github.com/Deevins/lampshop-backend/order/pkg/logger"
+	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/spf13/viper"
 	"log"
 	"net/http"
@@ -15,18 +17,24 @@ import (
 )
 
 func main() {
+	var (
+		ctx = context.Background()
+	)
 	logger.Init(true) // true = dev mode (читаемый вывод)
-
-	//cfg, err := config.LoadConfig("../internal/config")
-	//if err != nil {
-	//	logger.Log.Fatalf("cannot load config: %s", err)
-	//}
 
 	if err := initConfig(); err != nil {
 		log.Fatalf("can not read config file %s", err.Error())
 	}
 
-	h := order.NewHandler()
+	pool, err := pgxpool.New(ctx, "postgres://postgres:secret@localhost:5434/lampshop_orders?sslmode=disable")
+	if err != nil {
+		log.Fatalf("cannot connect to db: %v", err)
+	}
+	defer pool.Close()
+
+	orderSvc := service.NewOrderService(pool)
+
+	h := order.NewHandler(orderSvc)
 	router := h.InitRoutes()
 
 	srv := &http.Server{
@@ -47,7 +55,7 @@ func main() {
 	<-quit
 	logger.Log.Info("Shutting down server...")
 
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
 	if err := srv.Shutdown(ctx); err != nil {
 		logger.Log.Fatalf("Server forced to shutdown: %s", err)
