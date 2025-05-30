@@ -1,14 +1,33 @@
 package product
 
 import (
+	"context"
+	"github.com/Deevins/lampshop-backend/product/internal/service/sql"
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 )
 
-// Handler ...
-type Handler struct{}
+type Service interface {
+	ListProducts(ctx context.Context) ([]*sql.Product, error)
+	GetProduct(ctx context.Context, id uuid.UUID) (*sql.Product, error)
+	CreateProduct(ctx context.Context, params *sql.CreateProductParams) error
+	UpdateProduct(ctx context.Context, params *sql.UpdateProductParams) error
+	DeleteProduct(ctx context.Context, id uuid.UUID) error
 
-func NewHandler() *Handler {
-	return &Handler{}
+	ListCategories(ctx context.Context) ([]*sql.Category, error)
+	CreateCategory(ctx context.Context, c *sql.CreateCategoryParams) error
+	DeleteCategory(ctx context.Context, id uuid.UUID) error
+}
+
+// Handler ...
+type Handler struct {
+	service Service
+}
+
+func NewHandler(svc Service) *Handler {
+	return &Handler{
+		service: svc,
+	}
 }
 
 // InitRoutes ...

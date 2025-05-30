@@ -13,22 +13,22 @@ services:
     ports:
       - "5432:5432"
 
-  product-service:
-    build:
-      context: .
-      dockerfile: ./product/build/package/Dockerfile
-    depends_on:
-      - product-db
-    environment:
-      DB_HOST: product-db
-      DB_PORT: 5432
-      DB_USER: postgres
-      DB_PASSWORD: secret
-      DB_NAME: lampshop_products
-      PORT: 8081
-    ports:
-      - "8081:8081"
-    container_name: lampshop-product
+#  product-service:
+#    build:
+#      context: .
+#      dockerfile: ./product/build/package/Dockerfile
+#    depends_on:
+#      - product-db
+#    environment:
+#      DB_HOST: product-db
+#      DB_PORT: 5432
+#      DB_USER: postgres
+#      DB_PASSWORD: secret
+#      DB_NAME: lampshop_products
+#      PORT: 8081
+#    ports:
+#      - "8081:8081"
+#    container_name: lampshop-product
 
 volumes:
   product-data:

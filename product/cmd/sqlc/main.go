@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"github.com/pkg/errors"
 	"github.com/spf13/viper"
-	"gopkg.in/yaml.v2"
 	"gopkg.in/yaml.v3"
 	"os"
 	"os/exec"
@@ -61,8 +60,8 @@ func callSqlc(config string) error {
 }
 
 func main() {
-	viper.SetConfigName("sqlc-base")
-	viper.SetConfigType("sqlc.yaml")
+	viper.SetConfigName("sqlc")
+	viper.SetConfigType("yaml")
 	viper.AddConfigPath(".")
 	if err := viper.ReadInConfig(); err != nil {
 		panic(fmt.Errorf("fatal error config file: %w", err))
