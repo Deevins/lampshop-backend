@@ -3,7 +3,7 @@ package main
 import (
 	"context"
 	"errors"
-	"github.com/Deevins/lampshop-backend/product/internal/handler/product"
+	"github.com/Deevins/lampshop-backend/product/internal/handler/order"
 	"github.com/Deevins/lampshop-backend/product/pkg/logger"
 	"github.com/spf13/viper"
 	"log"
@@ -26,7 +26,7 @@ func main() {
 		log.Fatalf("can not read config file %s", err.Error())
 	}
 
-	h := product.NewHandler()
+	h := order.NewHandler()
 	router := h.InitRoutes()
 
 	srv := &http.Server{

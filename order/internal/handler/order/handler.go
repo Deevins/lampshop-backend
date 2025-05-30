@@ -21,15 +21,8 @@ func (h *Handler) InitRoutes() *gin.Engine {
 	{
 		order.GET("", h.GetAllOrders)
 		order.GET("/active", h.GetActiveOrders)
-		order.GET("/:order_id/status", h.GetOrderStatus)
-		order.GET("/view/:public_order_id", h.GetOrderByPublicID)
-	}
-
-	cart := r.Group("/cart")
-	{
-		cart.GET("", h.GetCart)
-		cart.POST("/items", h.AddItemToCart)
-		cart.DELETE("/items/:product_id", h.RemoveItemFromCart)
+		order.GET("/:id/status", h.GetOrderStatus)
+		order.GET("/view/:id", h.GetOrderByPublicID)
 	}
 
 	r.POST("/checkout", h.Checkout)

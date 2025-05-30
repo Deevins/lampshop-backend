@@ -14,21 +14,11 @@ func (h *Handler) GetActiveOrders(c *gin.Context) {
 }
 
 func (h *Handler) GetOrderStatus(c *gin.Context) {
-	c.JSON(http.StatusOK, gin.H{"message": "Get order status"})
+	c.JSON(http.StatusOK, gin.H{"message": "Get product status"})
 }
 
 func (h *Handler) GetOrderByPublicID(c *gin.Context) {
-	c.JSON(http.StatusOK, gin.H{"message": "Get order by public ID"})
-}
-
-func (h *Handler) GetCart(c *gin.Context) { c.JSON(http.StatusOK, gin.H{"message": "Get cart"}) }
-
-func (h *Handler) AddItemToCart(c *gin.Context) {
-	c.JSON(http.StatusCreated, gin.H{"message": "Add item"})
-}
-
-func (h *Handler) RemoveItemFromCart(c *gin.Context) {
-	c.JSON(http.StatusOK, gin.H{"message": "Remove item"})
+	c.JSON(http.StatusOK, gin.H{"message": "Get product by public ID"})
 }
 
 func (h *Handler) Checkout(c *gin.Context) { c.JSON(http.StatusOK, gin.H{"message": "Checkout"}) }
