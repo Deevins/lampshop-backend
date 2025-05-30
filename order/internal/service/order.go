@@ -2,9 +2,11 @@ package service
 
 import (
 	"context"
+	"fmt"
 	"github.com/Deevins/lampshop-backend/order/internal/model"
 	"github.com/Deevins/lampshop-backend/order/internal/service/sql"
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/pkg/errors"
 	"github.com/samber/lo"
@@ -27,7 +29,7 @@ func (s *OrderService) CreateOrder(ctx context.Context, req model.CreateOrderReq
 	}, 0.0)
 
 	if total != req.Payment.Amount {
-		return errors.New("products total should be equal to payment amount")
+		return fmt.Errorf("total amount is %v, but expected %v", total, req.Payment.Amount)
 	}
 
 	return repo.CreateOrder(ctx, &sql.CreateOrderParams{
@@ -65,6 +67,10 @@ func (s *OrderService) GetOrderStatus(ctx context.Context, id uuid.UUID) (model.
 
 	resp, err := repo.GetOrderStatus(ctx, id)
 	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return model.OrderStatusResponse{}, fmt.Errorf("order not found")
+		}
+
 		return model.OrderStatusResponse{}, err
 	}
 

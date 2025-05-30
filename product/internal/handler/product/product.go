@@ -48,7 +48,7 @@ func (h *Handler) CreateProduct(c *gin.Context) { // +
 
 	err := h.service.CreateProduct(c.Request.Context(), req)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to create product"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to create product", "errorDetail": err.Error()})
 		return
 	}
 
@@ -112,7 +112,7 @@ func (h *Handler) CreateCategory(c *gin.Context) {
 
 	err := h.service.CreateCategory(c.Request.Context(), req)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to create category"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to create category", "errorDetail": err.Error()})
 		return
 	}
 	c.JSON(http.StatusCreated, gin.H{"message": "category created"})

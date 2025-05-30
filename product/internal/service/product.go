@@ -3,9 +3,14 @@ package service
 import (
 	"context"
 	"encoding/json"
+	"errors"
+	"fmt"
 	"github.com/Deevins/lampshop-backend/product/internal/model"
 	"github.com/Deevins/lampshop-backend/product/internal/service/sql"
 	"github.com/google/uuid"
+	"github.com/jackc/pgerrcode"
+	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/samber/lo"
 	"github.com/shopspring/decimal"
@@ -42,7 +47,7 @@ func (s *ProductService) CreateProduct(ctx context.Context, params *model.Create
 		return err
 	}
 
-	return repo.CreateProduct(ctx, &sql.CreateProductParams{
+	if err = repo.CreateProduct(ctx, &sql.CreateProductParams{
 		ID:          uuid.New(),
 		Sku:         params.SKU,
 		Name:        params.Name,
@@ -55,17 +60,41 @@ func (s *ProductService) CreateProduct(ctx context.Context, params *model.Create
 		Attributes:  raw,
 		CreatedAt:   time.Now(),
 		UpdatedAt:   time.Now(),
-	})
+	}); err != nil {
+		var e *pgconn.PgError
+		if errors.As(err, &e) && e.Code == pgerrcode.UniqueViolation {
+			return fmt.Errorf("product with sku %s already exists", params.SKU)
+		}
+
+		return err
+	}
+
+	return nil
 }
 
 func (s *ProductService) UpdateProduct(ctx context.Context, params *model.UpdateProductRequest) error {
 	repo := sql.New(s.db)
-	return repo.UpdateProduct(ctx, mapUpdateRequestToSQL(params.ID, params))
+
+	err := repo.UpdateProduct(ctx, mapUpdateRequestToSQL(params.ID, params))
+
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return fmt.Errorf("product with id %s does not exist", params.ID)
+		}
+	}
+	return nil
 }
 
 func (s *ProductService) DeleteProduct(ctx context.Context, id uuid.UUID) error {
 	repo := sql.New(s.db)
-	return repo.DeleteProduct(ctx, id)
+
+	err := repo.DeleteProduct(ctx, id)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return fmt.Errorf("product with id %v does not exist", id)
+		}
+	}
+	return nil
 }
 
 func (s *ProductService) ListCategories(ctx context.Context) ([]*sql.Category, error) {
@@ -75,13 +104,31 @@ func (s *ProductService) ListCategories(ctx context.Context) ([]*sql.Category, e
 
 func (s *ProductService) CreateCategory(ctx context.Context, c *model.CategoryCreateRequest) error {
 	repo := sql.New(s.db)
-	return repo.CreateCategory(ctx, &sql.CreateCategoryParams{
+
+	if err := repo.CreateCategory(ctx, &sql.CreateCategoryParams{
 		ID:   uuid.New(),
 		Name: c.Name,
-	})
+	}); err != nil {
+		var e *pgconn.PgError
+		if errors.As(err, &e) && e.Code == pgerrcode.UniqueViolation {
+			return fmt.Errorf("product with name '%s' already exists", c.Name)
+		}
+
+		return err
+	}
+
+	return nil
 }
 
 func (s *ProductService) DeleteCategory(ctx context.Context, id uuid.UUID) error {
 	repo := sql.New(s.db)
-	return repo.DeleteCategory(ctx, id)
+
+	err := repo.DeleteCategory(ctx, id)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return fmt.Errorf("category with id '%s' does not exists", id)
+		}
+	}
+
+	return nil
 }
