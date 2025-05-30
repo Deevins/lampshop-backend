@@ -14,7 +14,8 @@ type Querier interface {
 	CreateCategory(ctx context.Context, arg *CreateCategoryParams) error
 	CreateProduct(ctx context.Context, arg *CreateProductParams) error
 	DeleteCategory(ctx context.Context, id uuid.UUID) error
-	DeleteProduct(ctx context.Context, id uuid.UUID) error
+	DeleteProduct(ctx context.Context, productID uuid.UUID) error
+	GetCategoryByID(ctx context.Context, id uuid.UUID) (*Category, error)
 	GetProductByID(ctx context.Context, id uuid.UUID) (*Product, error)
 	ListCategories(ctx context.Context) ([]*Category, error)
 	ListProducts(ctx context.Context) ([]*Product, error)

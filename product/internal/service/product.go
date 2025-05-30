@@ -88,7 +88,14 @@ func (s *ProductService) UpdateProduct(ctx context.Context, params *model.Update
 func (s *ProductService) DeleteProduct(ctx context.Context, id uuid.UUID) error {
 	repo := sql.New(s.db)
 
-	err := repo.DeleteProduct(ctx, id)
+	_, err := repo.GetProductByID(ctx, id)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return fmt.Errorf("product with id '%s' does not exists", id)
+		}
+	}
+
+	err = repo.DeleteProduct(ctx, id)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return fmt.Errorf("product with id %v does not exist", id)
@@ -111,7 +118,7 @@ func (s *ProductService) CreateCategory(ctx context.Context, c *model.CategoryCr
 	}); err != nil {
 		var e *pgconn.PgError
 		if errors.As(err, &e) && e.Code == pgerrcode.UniqueViolation {
-			return fmt.Errorf("product with name '%s' already exists", c.Name)
+			return fmt.Errorf("category with name '%s' already exists", c.Name)
 		}
 
 		return err
@@ -123,7 +130,14 @@ func (s *ProductService) CreateCategory(ctx context.Context, c *model.CategoryCr
 func (s *ProductService) DeleteCategory(ctx context.Context, id uuid.UUID) error {
 	repo := sql.New(s.db)
 
-	err := repo.DeleteCategory(ctx, id)
+	_, err := repo.GetCategoryByID(ctx, id)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return fmt.Errorf("category with id '%s' does not exists", id)
+		}
+	}
+
+	err = repo.DeleteCategory(ctx, id)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return fmt.Errorf("category with id '%s' does not exists", id)

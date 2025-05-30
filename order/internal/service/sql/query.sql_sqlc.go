@@ -36,9 +36,9 @@ func (q *Queries) AddOrderItem(ctx context.Context, arg *AddOrderItemParams) err
 	return err
 }
 
-const createOrder = `-- name: CreateOrder :exec
+const createOrder = `-- name: CreateOrder :one
 INSERT INTO orders (id, status, total, is_active)
-VALUES ($1, $2, $3, $4)
+VALUES ($1, $2, $3, $4) RETURNING id
 `
 
 type CreateOrderParams struct {
@@ -48,14 +48,16 @@ type CreateOrderParams struct {
 	IsActive bool
 }
 
-func (q *Queries) CreateOrder(ctx context.Context, arg *CreateOrderParams) error {
-	_, err := q.db.Exec(ctx, createOrder,
+func (q *Queries) CreateOrder(ctx context.Context, arg *CreateOrderParams) (uuid.UUID, error) {
+	row := q.db.QueryRow(ctx, createOrder,
 		arg.ID,
 		arg.Status,
 		arg.Total,
 		arg.IsActive,
 	)
-	return err
+	var id uuid.UUID
+	err := row.Scan(&id)
+	return id, err
 }
 
 const createPayment = `-- name: CreatePayment :exec

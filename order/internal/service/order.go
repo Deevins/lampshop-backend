@@ -31,13 +31,27 @@ func (s *OrderService) CreateOrder(ctx context.Context, req model.CreateOrderReq
 	if total != req.Payment.Amount {
 		return fmt.Errorf("total amount is %v, but expected %v", total, req.Payment.Amount)
 	}
-
-	return repo.CreateOrder(ctx, &sql.CreateOrderParams{
+	orderID, err := repo.CreateOrder(ctx, &sql.CreateOrderParams{
 		ID:       uuid.New(),
 		Status:   sql.PaymentStatusPending,
 		Total:    decimal.NewFromFloat(total),
 		IsActive: true,
 	})
+	if err != nil {
+		return err
+	}
+
+	for _, item := range req.Items {
+		err = repo.AddOrderItem(ctx, &sql.AddOrderItemParams{
+			ID:        uuid.New(),
+			OrderID:   orderID,
+			ProductID: item.ProductID,
+			Qty:       int32(item.Qty),
+			UnitPrice: decimal.NewFromFloat(item.UnitPrice),
+		})
+	}
+
+	return nil
 }
 
 func (s *OrderService) GetAllOrders(ctx context.Context) ([]model.Order, error) {

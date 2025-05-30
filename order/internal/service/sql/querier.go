@@ -12,7 +12,7 @@ import (
 
 type Querier interface {
 	AddOrderItem(ctx context.Context, arg *AddOrderItemParams) error
-	CreateOrder(ctx context.Context, arg *CreateOrderParams) error
+	CreateOrder(ctx context.Context, arg *CreateOrderParams) (uuid.UUID, error)
 	CreatePayment(ctx context.Context, arg *CreatePaymentParams) error
 	GetActiveOrders(ctx context.Context) ([]*Order, error)
 	GetAllOrders(ctx context.Context) ([]*Order, error)

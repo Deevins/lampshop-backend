@@ -41,7 +41,7 @@ WHERE id = $1;
 -- name: DeleteProduct :exec
 DELETE
 FROM products
-WHERE id = $1;
+WHERE id = @product_id;
 
 
 -- name: ListCategories :many
@@ -55,5 +55,10 @@ VALUES ($1, $2);
 
 -- name: DeleteCategory :exec
 DELETE
+FROM categories
+WHERE id = $1;
+
+-- name: GetCategoryByID :one
+SELECT *
 FROM categories
 WHERE id = $1;

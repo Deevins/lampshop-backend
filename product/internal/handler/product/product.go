@@ -7,7 +7,7 @@ import (
 	"net/http"
 )
 
-func (h *Handler) ListProducts(c *gin.Context) { // +
+func (h *Handler) ListProducts(c *gin.Context) {
 	products, err := h.service.ListProducts(c.Request.Context())
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "cannot list products"})
@@ -19,10 +19,15 @@ func (h *Handler) ListProducts(c *gin.Context) { // +
 		result = append(result, toProductResponse(p))
 	}
 
+	if len(result) == 0 {
+		c.JSON(http.StatusNotFound, gin.H{"error": "no products found"})
+		return
+	}
+
 	c.JSON(http.StatusOK, result)
 }
 
-func (h *Handler) GetProductByID(c *gin.Context) { // +
+func (h *Handler) GetProductByID(c *gin.Context) {
 	idParam := c.Param("id")
 	id, err := uuid.Parse(idParam)
 	if err != nil {
@@ -36,10 +41,14 @@ func (h *Handler) GetProductByID(c *gin.Context) { // +
 		return
 	}
 
+	if product == nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "product not found"})
+	}
+
 	c.JSON(http.StatusOK, toProductResponse(product))
 }
 
-func (h *Handler) CreateProduct(c *gin.Context) { // +
+func (h *Handler) CreateProduct(c *gin.Context) {
 	var req *model.CreateProductRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid request"})
@@ -55,7 +64,7 @@ func (h *Handler) CreateProduct(c *gin.Context) { // +
 	c.JSON(http.StatusCreated, gin.H{"message": "product created"})
 }
 
-func (h *Handler) UpdateProduct(c *gin.Context) { // +
+func (h *Handler) UpdateProduct(c *gin.Context) {
 	id, err := uuid.Parse(c.Param("id"))
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid product ID"})
@@ -86,7 +95,7 @@ func (h *Handler) DeleteProduct(c *gin.Context) {
 
 	err = h.service.DeleteProduct(c.Request.Context(), id)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to delete product"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to delete product", "errorDetail": err.Error()})
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{"message": "product deleted"})
@@ -100,6 +109,12 @@ func (h *Handler) ListCategories(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "cannot list categories"})
 		return
 	}
+
+	if len(categories) == 0 {
+		c.JSON(http.StatusNotFound, gin.H{"error": "no categories found"})
+		return
+	}
+
 	c.JSON(http.StatusOK, categories)
 }
 
@@ -127,7 +142,7 @@ func (h *Handler) DeleteCategory(c *gin.Context) {
 
 	err = h.service.DeleteCategory(c.Request.Context(), id)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to delete category"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to delete category", "errorDetail": err.Error()})
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{"message": "category deleted"})

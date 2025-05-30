@@ -14,9 +14,9 @@ SELECT id, status
 FROM orders
 WHERE id = $1;
 
--- name: CreateOrder :exec
+-- name: CreateOrder :one
 INSERT INTO orders (id, status, total, is_active)
-VALUES ($1, $2, $3, $4);
+VALUES ($1, $2, $3, $4) RETURNING id;
 
 
 -- name: AddOrderItem :exec
