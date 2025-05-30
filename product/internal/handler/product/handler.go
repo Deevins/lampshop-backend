@@ -2,6 +2,7 @@ package product
 
 import (
 	"context"
+	"github.com/Deevins/lampshop-backend/product/internal/model"
 	"github.com/Deevins/lampshop-backend/product/internal/service/sql"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -10,12 +11,12 @@ import (
 type Service interface {
 	ListProducts(ctx context.Context) ([]*sql.Product, error)
 	GetProduct(ctx context.Context, id uuid.UUID) (*sql.Product, error)
-	CreateProduct(ctx context.Context, params *sql.CreateProductParams) error
-	UpdateProduct(ctx context.Context, params *sql.UpdateProductParams) error
+	CreateProduct(ctx context.Context, params *model.CreateProductRequest) error
+	UpdateProduct(ctx context.Context, params *model.UpdateProductRequest) error
 	DeleteProduct(ctx context.Context, id uuid.UUID) error
 
 	ListCategories(ctx context.Context) ([]*sql.Category, error)
-	CreateCategory(ctx context.Context, c *sql.CreateCategoryParams) error
+	CreateCategory(ctx context.Context, c *model.CategoryCreateRequest) error
 	DeleteCategory(ctx context.Context, id uuid.UUID) error
 }
 
@@ -41,11 +42,18 @@ func (h *Handler) InitRoutes() *gin.Engine {
 		products.GET("", h.ListProducts)
 		products.POST("", h.CreateProduct)
 		products.GET("/:id", h.GetProductByID)
-		products.PATCH("/:id", h.UpdateProduct)
+		products.PUT("/:id", h.UpdateProduct)
 		products.DELETE("/:id", h.DeleteProduct)
 
 		products.GET("/upload-url", h.GetUploadURL)
 		products.POST("/notify-upload", h.NotifyUpload)
+	}
+
+	categories := r.Group("/categories")
+	{
+		categories.POST("", h.CreateCategory)
+		categories.GET("", h.ListCategories)
+		categories.DELETE("/:id", h.DeleteCategory)
 	}
 
 	return r

@@ -1,56 +1,28 @@
 package product
 
 import (
-	"github.com/Deevins/lampshop-backend/product/internal/service/sql"
+	"github.com/Deevins/lampshop-backend/product/internal/model"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"net/http"
 )
 
-func (h *Handler) GetUploadURL(c *gin.Context) {
-	filename := c.Query("filename")
-	if filename == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "filename is required"})
-		return
-	}
-
-	//url, err := h.MinioClient.PresignedPutObject(c, h.BucketName, filename, time.Minute*15)
-	//if err != nil {
-	//	c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-	//	return
-	//}
-
-	c.JSON(http.StatusOK, gin.H{"url": "https://test.pdf?X-Amz-Algorithm"})
-}
-
-func (h *Handler) NotifyUpload(c *gin.Context) {
-	var payload struct {
-		Filename  string `json:"filename"`
-		ProductID string `json:"product_id"`
-	}
-	if err := c.ShouldBindJSON(&payload); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid payload"})
-		return
-	}
-
-	// здесь можно связать файл с товаром, записать в БД и т.п.
-	c.JSON(http.StatusOK, gin.H{
-		"message":   "File upload recorded",
-		"productId": payload.ProductID,
-		"filename":  payload.Filename,
-	})
-}
-
-func (h *Handler) ListProducts(c *gin.Context) {
+func (h *Handler) ListProducts(c *gin.Context) { // +
 	products, err := h.service.ListProducts(c.Request.Context())
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "cannot list products"})
 		return
 	}
-	c.JSON(http.StatusOK, products)
+
+	var result []model.ProductFull
+	for _, p := range products {
+		result = append(result, toProductResponse(p))
+	}
+
+	c.JSON(http.StatusOK, result)
 }
 
-func (h *Handler) GetProductByID(c *gin.Context) {
+func (h *Handler) GetProductByID(c *gin.Context) { // +
 	idParam := c.Param("id")
 	id, err := uuid.Parse(idParam)
 	if err != nil {
@@ -64,23 +36,14 @@ func (h *Handler) GetProductByID(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, product)
+	c.JSON(http.StatusOK, toProductResponse(product))
 }
 
-func (h *Handler) CreateProduct(c *gin.Context) {
-	var req *sql.CreateProductParams
+func (h *Handler) CreateProduct(c *gin.Context) { // +
+	var req *model.CreateProductRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid request"})
 		return
-	}
-	if req.ID == uuid.Nil {
-		req.ID = uuid.New()
-	}
-	if req.CreatedAt.IsZero() {
-		req.CreatedAt = req.UpdatedAt
-	}
-	if req.UpdatedAt.IsZero() {
-		req.UpdatedAt = req.CreatedAt
 	}
 
 	err := h.service.CreateProduct(c.Request.Context(), req)
@@ -88,17 +51,18 @@ func (h *Handler) CreateProduct(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to create product"})
 		return
 	}
+
 	c.JSON(http.StatusCreated, gin.H{"message": "product created"})
 }
 
-func (h *Handler) UpdateProduct(c *gin.Context) {
+func (h *Handler) UpdateProduct(c *gin.Context) { // +
 	id, err := uuid.Parse(c.Param("id"))
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid product ID"})
 		return
 	}
 
-	var req *sql.UpdateProductParams
+	var req *model.UpdateProductRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid request"})
 		return
@@ -140,13 +104,10 @@ func (h *Handler) ListCategories(c *gin.Context) {
 }
 
 func (h *Handler) CreateCategory(c *gin.Context) {
-	var req *sql.CreateCategoryParams
+	var req *model.CategoryCreateRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid request"})
 		return
-	}
-	if req.ID == uuid.Nil {
-		req.ID = uuid.New()
 	}
 
 	err := h.service.CreateCategory(c.Request.Context(), req)
@@ -170,4 +131,40 @@ func (h *Handler) DeleteCategory(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{"message": "category deleted"})
+}
+
+/* File uploading */
+
+func (h *Handler) GetUploadURL(c *gin.Context) {
+	filename := c.Query("filename")
+	if filename == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "filename is required"})
+		return
+	}
+
+	//url, err := h.MinioClient.PresignedPutObject(c, h.BucketName, filename, time.Minute*15)
+	//if err != nil {
+	//	c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+	//	return
+	//}
+
+	c.JSON(http.StatusOK, gin.H{"url": "https://test.pdf?X-Amz-Algorithm"})
+}
+
+func (h *Handler) NotifyUpload(c *gin.Context) {
+	var payload struct {
+		Filename  string `json:"filename"`
+		ProductID string `json:"product_id"`
+	}
+	if err := c.ShouldBindJSON(&payload); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid payload"})
+		return
+	}
+
+	// здесь можно связать файл с товаром, записать в БД и т.п.
+	c.JSON(http.StatusOK, gin.H{
+		"message":   "File upload recorded",
+		"productId": payload.ProductID,
+		"filename":  payload.Filename,
+	})
 }

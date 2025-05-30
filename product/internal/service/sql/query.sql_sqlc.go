@@ -15,7 +15,8 @@ import (
 )
 
 const createCategory = `-- name: CreateCategory :exec
-INSERT INTO categories (id, name) VALUES ($1, $2)
+INSERT INTO categories (id, name)
+VALUES ($1, $2)
 `
 
 type CreateCategoryParams struct {
@@ -29,13 +30,10 @@ func (q *Queries) CreateCategory(ctx context.Context, arg *CreateCategoryParams)
 }
 
 const createProduct = `-- name: CreateProduct :exec
-INSERT INTO products (
-    id, sku, name, description, category_id, is_active, image_url,
-    price, stock_qty, attributes, created_at, updated_at
-) VALUES (
-             $1, $2, $3, $4, $5, $6, $7,
-             $8, $9, $10, $11, $12
-         )
+INSERT INTO products (id, sku, name, description, category_id, is_active, image_url,
+                      price, stock_qty, attributes, created_at, updated_at)
+VALUES ($1, $2, $3, $4, $5, $6, $7,
+        $8, $9, $10, $11, $12)
 `
 
 type CreateProductParams struct {
@@ -72,7 +70,9 @@ func (q *Queries) CreateProduct(ctx context.Context, arg *CreateProductParams) e
 }
 
 const deleteCategory = `-- name: DeleteCategory :exec
-DELETE FROM categories WHERE id = $1
+DELETE
+FROM categories
+WHERE id = $1
 `
 
 func (q *Queries) DeleteCategory(ctx context.Context, id uuid.UUID) error {
@@ -81,7 +81,9 @@ func (q *Queries) DeleteCategory(ctx context.Context, id uuid.UUID) error {
 }
 
 const deleteProduct = `-- name: DeleteProduct :exec
-DELETE FROM products WHERE id = $1
+DELETE
+FROM products
+WHERE id = $1
 `
 
 func (q *Queries) DeleteProduct(ctx context.Context, id uuid.UUID) error {
@@ -90,7 +92,9 @@ func (q *Queries) DeleteProduct(ctx context.Context, id uuid.UUID) error {
 }
 
 const getProductByID = `-- name: GetProductByID :one
-SELECT id, sku, name, description, category_id, is_active, image_url, price, stock_qty, attributes, created_at, updated_at FROM products WHERE id = $1
+SELECT id, sku, name, description, category_id, is_active, image_url, price, stock_qty, attributes, created_at, updated_at
+FROM products
+WHERE id = $1
 `
 
 func (q *Queries) GetProductByID(ctx context.Context, id uuid.UUID) (*Product, error) {
@@ -114,7 +118,9 @@ func (q *Queries) GetProductByID(ctx context.Context, id uuid.UUID) (*Product, e
 }
 
 const listCategories = `-- name: ListCategories :many
-SELECT id, name FROM categories ORDER BY name
+SELECT id, name
+FROM categories
+ORDER BY name
 `
 
 func (q *Queries) ListCategories(ctx context.Context) ([]*Category, error) {
@@ -138,7 +144,9 @@ func (q *Queries) ListCategories(ctx context.Context) ([]*Category, error) {
 }
 
 const listProducts = `-- name: ListProducts :many
-SELECT id, sku, name, description, category_id, is_active, image_url, price, stock_qty, attributes, created_at, updated_at FROM products ORDER BY created_at DESC
+SELECT id, sku, name, description, category_id, is_active, image_url, price, stock_qty, attributes, created_at, updated_at
+FROM products
+ORDER BY created_at DESC
 `
 
 func (q *Queries) ListProducts(ctx context.Context) ([]*Product, error) {
@@ -175,16 +183,27 @@ func (q *Queries) ListProducts(ctx context.Context) ([]*Product, error) {
 }
 
 const updateProduct = `-- name: UpdateProduct :exec
-UPDATE products SET
-                    name = $2,
-                    description = $3,
-                    category_id = $4,
-                    is_active = $5,
-                    image_url = $6,
-                    price = $7,
-                    stock_qty = $8,
-                    attributes = $9,
-                    updated_at = $10
+UPDATE products
+SET name        = CASE WHEN name IS DISTINCT FROM $2 THEN $2 ELSE name END,
+    description = CASE WHEN description IS DISTINCT FROM $3 THEN $3 ELSE description END,
+    category_id = CASE WHEN category_id IS DISTINCT FROM $4 THEN $4 ELSE category_id END,
+    is_active   = CASE WHEN is_active IS DISTINCT FROM $5 THEN $5 ELSE is_active END,
+    image_url   = CASE WHEN image_url IS DISTINCT FROM $6 THEN $6 ELSE image_url END,
+    price       = CASE WHEN price IS DISTINCT FROM $7 THEN $7 ELSE price END,
+    stock_qty   = CASE WHEN stock_qty IS DISTINCT FROM $8 THEN $8 ELSE stock_qty END,
+    attributes  = CASE WHEN attributes IS DISTINCT FROM $9 THEN $9 ELSE attributes END,
+    updated_at  = CASE
+                      WHEN
+                          name IS DISTINCT FROM $2 OR
+                          description IS DISTINCT FROM $3 OR
+                          category_id IS DISTINCT FROM $4 OR
+                          is_active IS DISTINCT FROM $5 OR
+                          image_url IS DISTINCT FROM $6 OR
+                          price IS DISTINCT FROM $7 OR
+                          stock_qty IS DISTINCT FROM $8 OR
+                          attributes IS DISTINCT FROM $9
+                          THEN $10
+                      ELSE updated_at END
 WHERE id = $1
 `
 
