@@ -37,15 +37,22 @@ func (q *Queries) AddOrderItem(ctx context.Context, arg *AddOrderItemParams) err
 }
 
 const createOrder = `-- name: CreateOrder :one
-INSERT INTO orders (id, status, total, is_active)
-VALUES ($1, $2, $3, $4) RETURNING id
+INSERT INTO orders (id, status, total, is_active, customer_first_name, customer_last_name,
+                    customer_email, customer_phone, address)
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+RETURNING id
 `
 
 type CreateOrderParams struct {
-	ID       uuid.UUID
-	Status   PaymentStatus
-	Total    decimal.Decimal
-	IsActive bool
+	ID                uuid.UUID
+	Status            PaymentStatus
+	Total             decimal.Decimal
+	IsActive          bool
+	CustomerFirstName string
+	CustomerLastName  string
+	CustomerEmail     string
+	CustomerPhone     string
+	Address           string
 }
 
 func (q *Queries) CreateOrder(ctx context.Context, arg *CreateOrderParams) (uuid.UUID, error) {
@@ -54,6 +61,11 @@ func (q *Queries) CreateOrder(ctx context.Context, arg *CreateOrderParams) (uuid
 		arg.Status,
 		arg.Total,
 		arg.IsActive,
+		arg.CustomerFirstName,
+		arg.CustomerLastName,
+		arg.CustomerEmail,
+		arg.CustomerPhone,
+		arg.Address,
 	)
 	var id uuid.UUID
 	err := row.Scan(&id)
@@ -87,7 +99,7 @@ func (q *Queries) CreatePayment(ctx context.Context, arg *CreatePaymentParams) e
 }
 
 const getActiveOrders = `-- name: GetActiveOrders :many
-SELECT id, status, total, is_active, created_at, updated_at
+SELECT id, status, total, is_active, customer_first_name, customer_last_name, customer_email, customer_phone, address, created_at, updated_at
 FROM orders
 WHERE is_active = true
 ORDER BY created_at DESC
@@ -107,6 +119,11 @@ func (q *Queries) GetActiveOrders(ctx context.Context) ([]*Order, error) {
 			&i.Status,
 			&i.Total,
 			&i.IsActive,
+			&i.CustomerFirstName,
+			&i.CustomerLastName,
+			&i.CustomerEmail,
+			&i.CustomerPhone,
+			&i.Address,
 			&i.CreatedAt,
 			&i.UpdatedAt,
 		); err != nil {
@@ -121,7 +138,7 @@ func (q *Queries) GetActiveOrders(ctx context.Context) ([]*Order, error) {
 }
 
 const getAllOrders = `-- name: GetAllOrders :many
-SELECT id, status, total, is_active, created_at, updated_at
+SELECT id, status, total, is_active, customer_first_name, customer_last_name, customer_email, customer_phone, address, created_at, updated_at
 FROM orders
 ORDER BY created_at DESC
 `
@@ -140,6 +157,11 @@ func (q *Queries) GetAllOrders(ctx context.Context) ([]*Order, error) {
 			&i.Status,
 			&i.Total,
 			&i.IsActive,
+			&i.CustomerFirstName,
+			&i.CustomerLastName,
+			&i.CustomerEmail,
+			&i.CustomerPhone,
+			&i.Address,
 			&i.CreatedAt,
 			&i.UpdatedAt,
 		); err != nil {
@@ -154,7 +176,7 @@ func (q *Queries) GetAllOrders(ctx context.Context) ([]*Order, error) {
 }
 
 const getOrderStatus = `-- name: GetOrderStatus :one
-SELECT id, status
+SELECT id, status, total
 FROM orders
 WHERE id = $1
 `
@@ -162,11 +184,12 @@ WHERE id = $1
 type GetOrderStatusRow struct {
 	ID     uuid.UUID
 	Status PaymentStatus
+	Total  decimal.Decimal
 }
 
 func (q *Queries) GetOrderStatus(ctx context.Context, id uuid.UUID) (*GetOrderStatusRow, error) {
 	row := q.db.QueryRow(ctx, getOrderStatus, id)
 	var i GetOrderStatusRow
-	err := row.Scan(&i.ID, &i.Status)
+	err := row.Scan(&i.ID, &i.Status, &i.Total)
 	return &i, err
 }

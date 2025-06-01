@@ -1,6 +1,7 @@
 package order
 
 import (
+	"fmt"
 	"github.com/Deevins/lampshop-backend/order/internal/model"
 	"github.com/Deevins/lampshop-backend/order/pkg/logger"
 	"github.com/gin-gonic/gin"
@@ -41,6 +42,7 @@ func (h *Handler) GetOrderStatus(c *gin.Context) {
 
 	c.JSON(http.StatusOK, model.OrderStatusResponse{
 		OrderID: status.OrderID,
+		Amount:  status.Amount,
 		Status:  status.Status,
 	})
 }
@@ -53,17 +55,19 @@ func (h *Handler) CreateOrder(c *gin.Context) {
 		return
 	}
 
+	fmt.Printf("%+v", req)
+
 	if len(req.Items) == 0 {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "order must contain items"})
 		return
 	}
 
-	err := h.service.CreateOrder(c.Request.Context(), req)
+	orderID, err := h.service.CreateOrder(c.Request.Context(), req)
 	if err != nil {
-		logger.Log.Errorw("failed to bind create order request", "error", err)
+		logger.Log.Errorw("failed to create order", "error", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to create order"})
 		return
 	}
 
-	c.JSON(http.StatusCreated, gin.H{"message": "order created"})
+	c.JSON(http.StatusCreated, gin.H{"order_id": orderID, "message": "order created"})
 }

@@ -10,13 +10,15 @@ WHERE is_active = true
 ORDER BY created_at DESC;
 
 -- name: GetOrderStatus :one
-SELECT id, status
+SELECT id, status, total
 FROM orders
 WHERE id = $1;
 
 -- name: CreateOrder :one
-INSERT INTO orders (id, status, total, is_active)
-VALUES ($1, $2, $3, $4) RETURNING id;
+INSERT INTO orders (id, status, total, is_active, customer_first_name, customer_last_name,
+                    customer_email, customer_phone, address)
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+RETURNING id;
 
 
 -- name: AddOrderItem :exec

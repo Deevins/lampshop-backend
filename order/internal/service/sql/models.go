@@ -99,10 +99,15 @@ func (ns NullPaymentStatus) Value() (driver.Value, error) {
 }
 
 type Order struct {
-	ID        uuid.UUID
-	Status    PaymentStatus
-	Total     decimal.Decimal
-	IsActive  bool
-	CreatedAt time.Time
-	UpdatedAt time.Time
+	ID                uuid.UUID
+	Status            PaymentStatus
+	Total             decimal.Decimal
+	IsActive          bool
+	CustomerFirstName string
+	CustomerLastName  string
+	CustomerEmail     string
+	CustomerPhone     string
+	Address           string
+	CreatedAt         time.Time
+	UpdatedAt         time.Time
 }

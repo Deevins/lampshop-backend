@@ -11,7 +11,7 @@ type Service interface {
 	GetAllOrders(ctx context.Context) ([]model.Order, error)
 	GetActiveOrders(ctx context.Context) ([]model.Order, error)
 	GetOrderStatus(ctx context.Context, id uuid.UUID) (model.OrderStatusResponse, error)
-	CreateOrder(ctx context.Context, req model.CreateOrderRequest) error
+	CreateOrder(ctx context.Context, req model.CreateOrderRequest) (uuid.UUID, error)
 }
 
 // Handler ...
@@ -29,6 +29,8 @@ func NewHandler(svc Service) *Handler {
 func (h *Handler) InitRoutes() *gin.Engine {
 	r := gin.Default()
 
+	r.Use(corsMiddleware())
+
 	orders := r.Group("/orders")
 	{
 		orders.GET("", h.GetAllOrders)
@@ -37,8 +39,6 @@ func (h *Handler) InitRoutes() *gin.Engine {
 	}
 	r.POST("/checkout", h.CreateOrder)
 
-	r.Use(corsMiddleware())
-
 	return r
 }
 
@@ -46,7 +46,7 @@ func corsMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
 		c.Writer.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE")
-		c.Writer.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
+		c.Writer.Header().Set("Access-Control-Allow-Headers", "*")
 
 		if c.Request.Method == "OPTIONS" {
 			c.AbortWithStatus(204)

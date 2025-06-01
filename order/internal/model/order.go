@@ -21,9 +21,18 @@ type Order struct {
 	UpdatedAt time.Time `json:"updated_at"`
 }
 
+type Customer struct {
+	FirstName string `json:"first_name"`
+	LastName  string `json:"last_name"`
+	Email     string `json:"email"`
+	Phone     string `json:"phone"`
+	Address   string `json:"address"`
+}
+
 type CreateOrderRequest struct {
-	Items   []OrderItemInput `json:"items"`
-	Payment PaymentInput     `json:"payment"`
+	Items    []OrderItemInput `json:"items"`
+	Customer Customer         `json:"customer"`
+	Payment  PaymentInput     `json:"payment"`
 }
 
 type OrderItemInput struct {
@@ -40,5 +49,6 @@ type PaymentInput struct {
 
 type OrderStatusResponse struct {
 	OrderID uuid.UUID `json:"order_id"`
+	Amount  float64   `json:"amount"`
 	Status  string    `json:"status"`
 }

@@ -21,24 +21,29 @@ func NewOrderService(db *pgxpool.Pool) *OrderService {
 	return &OrderService{db: db}
 }
 
-func (s *OrderService) CreateOrder(ctx context.Context, req model.CreateOrderRequest) error {
+func (s *OrderService) CreateOrder(ctx context.Context, req model.CreateOrderRequest) (uuid.UUID, error) {
 	repo := sql.New(s.db)
 
 	total := lo.Reduce(req.Items, func(acc float64, item model.OrderItemInput, _ int) float64 {
 		return acc + float64(item.Qty)*item.UnitPrice
 	}, 0.0)
 
-	if total != req.Payment.Amount {
-		return fmt.Errorf("total amount is %v, but expected %v", total, req.Payment.Amount)
-	}
+	//if total != req.Payment.Amount {
+	//	return uuid.Nil, fmt.Errorf("total amount is %v, but expected %v", total, req.Payment.Amount)
+	//}
 	orderID, err := repo.CreateOrder(ctx, &sql.CreateOrderParams{
-		ID:       uuid.New(),
-		Status:   sql.PaymentStatusPending,
-		Total:    decimal.NewFromFloat(total),
-		IsActive: true,
+		ID:                uuid.New(),
+		Status:            sql.PaymentStatusPending,
+		Total:             decimal.NewFromFloat(total),
+		IsActive:          true,
+		CustomerFirstName: req.Customer.FirstName,
+		CustomerLastName:  req.Customer.LastName,
+		CustomerEmail:     req.Customer.Email,
+		CustomerPhone:     req.Customer.Phone,
+		Address:           req.Customer.Address,
 	})
 	if err != nil {
-		return err
+		return uuid.Nil, err
 	}
 
 	for _, item := range req.Items {
@@ -51,7 +56,7 @@ func (s *OrderService) CreateOrder(ctx context.Context, req model.CreateOrderReq
 		})
 	}
 
-	return nil
+	return orderID, nil
 }
 
 func (s *OrderService) GetAllOrders(ctx context.Context) ([]model.Order, error) {
@@ -90,6 +95,7 @@ func (s *OrderService) GetOrderStatus(ctx context.Context, id uuid.UUID) (model.
 
 	return model.OrderStatusResponse{
 		OrderID: resp.ID,
+		Amount:  resp.Total.InexactFloat64(),
 		Status:  string(resp.Status),
 	}, nil
 }
