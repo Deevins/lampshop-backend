@@ -15,11 +15,6 @@ type InMemoryCategoryRepo struct {
 	categories []domain.Category
 }
 
-// NewInMemoryCategoryRepo создаёт новый репозиторий с начальными категориями.
-func NewInMemoryCategoryRepo(initial []domain.Category) *InMemoryCategoryRepo {
-	return &InMemoryCategoryRepo{categories: initial}
-}
-
 func (r *InMemoryCategoryRepo) GetAll() ([]domain.Category, error) {
 	cats := make([]domain.Category, len(r.categories))
 	copy(cats, r.categories)

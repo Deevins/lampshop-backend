@@ -6,10 +6,9 @@ type Category struct {
 	Name string `json:"name"`
 }
 
-// AttributeOption описывает один атрибут, который динамически выбирается
-// для товара в зависимости от категории.
+// AttributeOption описывает один атрибут, который динамически выбирается для товара в зависимости от категории.
 type AttributeOption struct {
 	Key   string `json:"key"`
 	Label string `json:"label"`
-	Type  string `json:"type"` // "text" или "number"
+	Type  string `json:"type"`
 }

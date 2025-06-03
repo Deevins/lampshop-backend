@@ -1,5 +1,3 @@
-// main.go
-
 package main
 
 import (
@@ -16,7 +14,6 @@ import (
 )
 
 func main() {
-	// 1) Подключаемся к PostgreSQL
 	ctx := context.Background()
 	dbPool, err := infra.NewPostgresPool(ctx)
 	if err != nil {
@@ -24,7 +21,6 @@ func main() {
 	}
 	defer dbPool.Close()
 
-	// 2) Инициализируем репозитории и сервисы (для локальных данных: auth и categories)
 	authRepo := repository.NewAuthRepository(dbPool)
 	attrRepo := repository.NewAttributeRepository(dbPool)
 	authService := service.NewAuthService(authRepo)
@@ -32,27 +28,22 @@ func main() {
 	authHandler := handler.NewAuthHandler(authService)
 	categoryHandler := handler.NewCategoryHandler(categoryService)
 
-	// 3) Инициализируем внешние HTTP-клиенты для order- и product-сервисов
 	orderServiceURL := "http://order-service:8082"
 	productServiceURL := "http://product-service:8081"
 
 	orderClient := infra.NewOrderServiceClient(orderServiceURL)
 	productClient := infra.NewProductServiceClient(productServiceURL)
 
-	// 4) Настраиваем Gin + CORS
 	router := gin.Default()
 	router.Use(corsMiddleware())
 
-	// 5) Открытые маршруты
 	router.POST("/login", authHandler.Login)
 	router.GET("/categories", categoryHandler.GetCategories)
 	router.GET("/categories/:id/attributes", categoryHandler.GetAttributeOptions)
 
-	// 6) Защищенные маршруты с JWT-миддлварой
 	protected := router.Group("/")
 	//protected.Use(AuthMiddleware())
 
-	// ===== Order-service прокси-ручки =====
 	protected.GET("/orders", func(c *gin.Context) {
 		//token := extractBearerToken(c.Request.Header.Get("Authorization"))
 		token := "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c"
@@ -60,7 +51,6 @@ func main() {
 		infra.ProxyResponse(c, resp, err)
 	})
 
-	// ===== Order-service прокси-ручки =====
 	protected.PUT("/orders/:id/status", func(c *gin.Context) {
 		//token := extractBearerToken(c.Request.Header.Get("Authorization"))
 		token := "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c"
@@ -94,7 +84,6 @@ func main() {
 		infra.ProxyResponse(c, resp, err)
 	})
 
-	// ===== Product-service прокси-ручки =====
 	protected.GET("/products", func(c *gin.Context) {
 		//token := extractBearerToken(c.Request.Header.Get("Authorization"))
 		token := "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c"

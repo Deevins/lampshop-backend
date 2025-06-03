@@ -30,8 +30,6 @@ func NewHandler(svc Service) *Handler {
 func (h *Handler) InitRoutes() *gin.Engine {
 	r := gin.Default()
 
-	//r.Use(corsMiddleware())
-
 	orders := r.Group("/orders")
 	{
 		orders.GET("", h.GetAllOrders)

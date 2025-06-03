@@ -20,7 +20,7 @@ func main() {
 	var (
 		ctx = context.Background()
 	)
-	logger.Init(true) // true = dev mode (читаемый вывод)
+	logger.Init(true)
 
 	//cfg, err := config.LoadConfig("../internal/config")
 	//if err != nil {

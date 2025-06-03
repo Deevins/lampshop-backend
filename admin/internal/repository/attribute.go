@@ -14,7 +14,6 @@ type AttributeRepository interface {
 	ListAttributesByCategory(ctx context.Context, categoryID uuid.UUID) ([]*sql.AttributeOption, error)
 }
 
-// attributeRepoPG — реализация через sqlc/pgx.
 type attributeRepoPG struct {
 	queries *sql.Queries
 }

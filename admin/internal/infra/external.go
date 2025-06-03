@@ -14,7 +14,6 @@ type OrderServiceClient struct {
 }
 
 // NewOrderServiceClient создает клиента для сервиса заказов.
-// baseURL — это адрес, по которому доступен order-service, например "http://localhost:9000".
 func NewOrderServiceClient(baseURL string) *OrderServiceClient {
 	return &OrderServiceClient{
 		BaseURL:    baseURL,
@@ -86,7 +85,6 @@ type ProductServiceClient struct {
 }
 
 // NewProductServiceClient создает клиента для сервиса товаров.
-// baseURL — это адрес, по которому доступен product-service, например "http://localhost:9100".
 func NewProductServiceClient(baseURL string) *ProductServiceClient {
 	return &ProductServiceClient{
 		BaseURL:    baseURL,
@@ -182,15 +180,14 @@ func ProxyResponse(c *gin.Context, resp *http.Response, err error) {
 	}
 	defer resp.Body.Close()
 
-	// Копируем статус-код
 	c.Status(resp.StatusCode)
-	// Копируем заголовки
+
 	for k, vv := range resp.Header {
 		for _, v := range vv {
 			c.Writer.Header().Add(k, v)
 		}
 	}
-	// Копируем тело
+
 	bodyBuf := new(bytes.Buffer)
 	_, copyErr := io.Copy(bodyBuf, resp.Body)
 	if copyErr != nil {

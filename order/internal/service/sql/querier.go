@@ -16,9 +16,6 @@ type Querier interface {
 	CreatePayment(ctx context.Context, arg *CreatePaymentParams) error
 	GetActiveOrders(ctx context.Context) ([]*Order, error)
 	GetAllOrders(ctx context.Context) ([]*Order, error)
-	// 2) Получить все элементы сразу для массива order_id
-	//    Мы передаём массив UUID, а SQL возвращает все rows из order_items,
-	//    у которых order_id = ANY($1).
 	GetOrderItemsByOrderIDs(ctx context.Context, dollar_1 []uuid.UUID) ([]*GetOrderItemsByOrderIDsRow, error)
 	GetOrderStatus(ctx context.Context, id uuid.UUID) (*GetOrderStatusRow, error)
 	UpdateOrderStatus(ctx context.Context, arg *UpdateOrderStatusParams) error

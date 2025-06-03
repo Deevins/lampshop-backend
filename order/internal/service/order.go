@@ -28,9 +28,6 @@ func (s *OrderService) CreateOrder(ctx context.Context, req model.CreateOrderReq
 		return acc + float64(item.Qty)*item.UnitPrice
 	}, 0.0)
 
-	//if total != req.Payment.Amount {
-	//	return uuid.Nil, fmt.Errorf("total amount is %v, but expected %v", total, req.Payment.Amount)
-	//}
 	orderID, err := repo.CreateOrder(ctx, &sql.CreateOrderParams{
 		ID:                uuid.New(),
 		Status:            sql.PaymentStatusPending,
@@ -67,27 +64,22 @@ func (s *OrderService) GetAllOrders(ctx context.Context) ([]model.Order, error) 
 		return nil, err
 	}
 
-	// Если заказов нет, сразу отдаём пустой срез
 	if len(ordersRows) == 0 {
 		return []model.Order{}, nil
 	}
 
-	// 2) Собираем слайс всех order_id, чтобы запросить элементы одним махом
 	var orderIDs []uuid.UUID
 	for _, o := range ordersRows {
 		orderIDs = append(orderIDs, o.ID)
 	}
 
-	// 3) Получаем все элементы, у которых order_id ∈ orderIDs
 	items, err := repo.GetOrderItemsByOrderIDs(ctx, orderIDs)
 	if err != nil {
 		return nil, fmt.Errorf("GetOrderItemsByOrderIDs failed: %w", err)
 	}
 
-	// 4) Распаковываем itemsRows в map: key=order_id.String() → []model.OrderItem
 	itemsMap := make(map[string][]model.OrderItem, len(orderIDs))
 	for _, ir := range items {
-		// Преобразуем ir.OrderItemPrice (decimal.Decimal) в float64
 		var priceFloat float64
 		switch v := any(ir.OrderItemPrice).(type) {
 		case decimal.Decimal:
@@ -108,10 +100,8 @@ func (s *OrderService) GetAllOrders(ctx context.Context) ([]model.Order, error) 
 		itemsMap[key] = append(itemsMap[key], oi)
 	}
 
-	// 5) Собираем финальный список заказов, подставляя в каждый его Items из itemsMap
 	var result []model.Order
 	for _, or := range ordersRows {
-		// Преобразуем or.Total (decimal.Decimal) в float64
 		var totalFloat float64
 		switch v := any(or.Total).(type) {
 		case decimal.Decimal:
@@ -127,7 +117,7 @@ func (s *OrderService) GetAllOrders(ctx context.Context) ([]model.Order, error) 
 			ID:        or.ID,
 			Status:    string(or.Status),
 			FullName:  fullName,
-			Items:     itemsMap[or.ID.String()], // если нет элементов, itemsMap вернёт nil → JSON отдаст пустой массив
+			Items:     itemsMap[or.ID.String()],
 			Total:     totalFloat,
 			IsActive:  or.IsActive,
 			CreatedAt: or.CreatedAt,
