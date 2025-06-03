@@ -88,7 +88,7 @@ func (h *Handler) UpdateOrderStatus(c *gin.Context) {
 
 	err = h.service.UpdateStatus(c.Request.Context(), req.OrderID, req.Status)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to update order"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to update order", "errorDetail": err.Error()})
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{"message": "order status updated"})

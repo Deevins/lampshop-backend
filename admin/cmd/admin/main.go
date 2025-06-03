@@ -35,7 +35,7 @@ func main() {
 	productClient := infra.NewProductServiceClient(productServiceURL)
 
 	router := gin.Default()
-	router.Use(corsMiddleware())
+	//router.Use(corsMiddleware())
 
 	router.POST("/login", authHandler.Login)
 	router.GET("/categories", categoryHandler.GetCategories)
@@ -171,12 +171,22 @@ func extractBearerToken(headerValue string) string {
 
 func corsMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
-		c.Writer.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE")
-		c.Writer.Header().Set("Access-Control-Allow-Headers", "*")
+		hdr := c.Writer.Header()
+
+		if _, ok := hdr["Access-Control-Allow-Origin"]; !ok {
+			// Нет такого ключа — ставим
+			hdr.Set("Access-Control-Allow-Origin", "*")
+		}
+		// Аналогично для других CORS-заголовков:
+		if _, ok := hdr["Access-Control-Allow-Methods"]; !ok {
+			hdr.Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+		}
+		if _, ok := hdr["Access-Control-Allow-Headers"]; !ok {
+			hdr.Set("Access-Control-Allow-Headers", "*")
+		}
 
 		if c.Request.Method == "OPTIONS" {
-			c.AbortWithStatus(204)
+			c.AbortWithStatus(200)
 			return
 		}
 

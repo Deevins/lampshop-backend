@@ -34,7 +34,7 @@ func NewHandler(svc Service) *Handler {
 // InitRoutes ...
 func (h *Handler) InitRoutes() *gin.Engine {
 	r := gin.Default()
-	//r.Use(corsMiddleware())
+	r.Use(corsMiddleware())
 
 	products := r.Group("/products")
 	{
@@ -60,12 +60,20 @@ func (h *Handler) InitRoutes() *gin.Engine {
 
 func corsMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
-		c.Writer.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE")
-		c.Writer.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
+		hdr := c.Writer.Header()
+
+		if _, ok := hdr["Access-Control-Allow-Origin"]; !ok {
+			hdr.Set("Access-Control-Allow-Origin", "*")
+		}
+		if _, ok := hdr["Access-Control-Allow-Methods"]; !ok {
+			hdr.Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+		}
+		if _, ok := hdr["Access-Control-Allow-Headers"]; !ok {
+			hdr.Set("Access-Control-Allow-Headers", "*")
+		}
 
 		if c.Request.Method == "OPTIONS" {
-			c.AbortWithStatus(204)
+			c.AbortWithStatus(200)
 			return
 		}
 

@@ -1,12 +1,13 @@
 -- +goose Up
 CREATE TYPE payment_status AS ENUM ('pending', 'succeeded', 'failed');
+CREATE TYPE order_status AS ENUM ('pending', 'processing', 'shipped', 'delivered');
 CREATE TYPE payment_provider AS ENUM ('stripe', 'sbp');
 
 
 CREATE TABLE orders
 (
     id                  UUID PRIMARY KEY,
-    status              payment_status            NOT NULL,
+    status              order_status            NOT NULL,
     total               NUMERIC(10, 2)            NOT NULL CHECK (total >= 0),
     is_active           BOOLEAN     DEFAULT true  NOT NULL,
     customer_first_name TEXT                      NOT NULL,
