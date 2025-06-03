@@ -52,3 +52,8 @@ type OrderStatusResponse struct {
 	Amount  float64   `json:"amount"`
 	Status  string    `json:"status"`
 }
+
+type UpdateOrderStatusRequest struct {
+	OrderID uuid.UUID `json:"order_id"`
+	Status  string    `json:"status"`
+}

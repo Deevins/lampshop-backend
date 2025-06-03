@@ -29,3 +29,9 @@ VALUES ($1, $2, $3, $4, $5);
 -- name: CreatePayment :exec
 INSERT INTO payments (id, order_id, provider, status, amount, transaction_ref)
 VALUES ($1, $2, $3, $4, $5, $6);
+
+
+-- name: UpdateOrderStatus :exec
+UPDATE orders
+SET status = $1
+where id = $2;

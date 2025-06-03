@@ -12,6 +12,7 @@ type Service interface {
 	GetActiveOrders(ctx context.Context) ([]model.Order, error)
 	GetOrderStatus(ctx context.Context, id uuid.UUID) (model.OrderStatusResponse, error)
 	CreateOrder(ctx context.Context, req model.CreateOrderRequest) (uuid.UUID, error)
+	UpdateStatus(ctx context.Context, id uuid.UUID, status string) error
 }
 
 // Handler ...
@@ -36,6 +37,7 @@ func (h *Handler) InitRoutes() *gin.Engine {
 		orders.GET("", h.GetAllOrders)
 		orders.GET("/active", h.GetActiveOrders)
 		orders.GET("/:id/status", h.GetOrderStatus)
+		orders.PUT("/:id/status", h.UpdateOrderStatus)
 	}
 	r.POST("/checkout", h.CreateOrder)
 

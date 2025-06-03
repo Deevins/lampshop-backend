@@ -17,6 +17,7 @@ type Querier interface {
 	GetActiveOrders(ctx context.Context) ([]*Order, error)
 	GetAllOrders(ctx context.Context) ([]*Order, error)
 	GetOrderStatus(ctx context.Context, id uuid.UUID) (*GetOrderStatusRow, error)
+	UpdateOrderStatus(ctx context.Context, arg *UpdateOrderStatusParams) error
 }
 
 var _ Querier = (*Queries)(nil)

@@ -71,3 +71,25 @@ func (h *Handler) CreateOrder(c *gin.Context) {
 
 	c.JSON(http.StatusCreated, gin.H{"order_id": orderID, "message": "order created"})
 }
+
+func (h *Handler) UpdateOrderStatus(c *gin.Context) {
+	id, err := uuid.Parse(c.Param("id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid order ID"})
+		return
+	}
+
+	var req *model.UpdateOrderStatusRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid request"})
+		return
+	}
+	req.OrderID = id
+
+	err = h.service.UpdateStatus(c.Request.Context(), req.OrderID, req.Status)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to update order"})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"message": "order status updated"})
+}

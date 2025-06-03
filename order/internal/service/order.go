@@ -99,3 +99,20 @@ func (s *OrderService) GetOrderStatus(ctx context.Context, id uuid.UUID) (model.
 		Status:  string(resp.Status),
 	}, nil
 }
+
+func (s *OrderService) UpdateStatus(ctx context.Context, id uuid.UUID, status string) error {
+	repo := sql.New(s.db)
+
+	if err := repo.UpdateOrderStatus(ctx, &sql.UpdateOrderStatusParams{
+		Status: sql.PaymentStatus(status),
+		ID:     id,
+	}); err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return fmt.Errorf("order not found")
+		}
+
+		return err
+	}
+
+	return nil
+}

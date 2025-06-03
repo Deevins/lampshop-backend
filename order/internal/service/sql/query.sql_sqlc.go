@@ -193,3 +193,19 @@ func (q *Queries) GetOrderStatus(ctx context.Context, id uuid.UUID) (*GetOrderSt
 	err := row.Scan(&i.ID, &i.Status, &i.Total)
 	return &i, err
 }
+
+const updateOrderStatus = `-- name: UpdateOrderStatus :exec
+UPDATE orders
+SET status = $1
+where id = $2
+`
+
+type UpdateOrderStatusParams struct {
+	Status PaymentStatus
+	ID     uuid.UUID
+}
+
+func (q *Queries) UpdateOrderStatus(ctx context.Context, arg *UpdateOrderStatusParams) error {
+	_, err := q.db.Exec(ctx, updateOrderStatus, arg.Status, arg.ID)
+	return err
+}
