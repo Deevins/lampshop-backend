@@ -12,7 +12,7 @@ import (
 func (h *Handler) GetAllOrders(c *gin.Context) {
 	orders, err := h.service.GetAllOrders(c.Request.Context())
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to fetch orders"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to fetch orders", "errorDetail": err.Error()})
 		return
 	}
 	c.JSON(http.StatusOK, orders)

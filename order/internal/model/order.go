@@ -13,12 +13,22 @@ const (
 )
 
 type Order struct {
+	ID        uuid.UUID   `json:"id"`
+	Status    string      `json:"status"`
+	FullName  string      `json:"full_name"`
+	Items     []OrderItem `json:"items"`
+	Total     float64     `json:"total"`
+	IsActive  bool        `json:"is_active"`
+	CreatedAt time.Time   `json:"created_at"`
+	UpdatedAt time.Time   `json:"updated_at"`
+}
+
+type OrderItem struct {
 	ID        uuid.UUID `json:"id"`
-	Status    string    `json:"status"`
-	Total     float64   `json:"total"`
-	IsActive  bool      `json:"is_active"`
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
+	OrderID   uuid.UUID `json:"order_id"`
+	ProductID uuid.UUID `json:"product_id"`
+	Quantity  float64   `json:"quantity"`
+	Price     float64   `json:"price"`
 }
 
 type Customer struct {

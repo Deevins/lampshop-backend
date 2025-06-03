@@ -32,6 +32,7 @@ func main() {
 	//}
 
 	pool, err := pgxpool.New(ctx, "postgres://postgres:secret@product-db:5432/lampshop_products?sslmode=disable")
+	//pool, err := pgxpool.New(ctx, "postgres://postgres:secret@localhost:5432/lampshop_products?sslmode=disable")
 	if err != nil {
 		log.Fatalf("cannot connect to db: %v", err)
 	}

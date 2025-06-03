@@ -22,10 +22,8 @@ func main() {
 	)
 	logger.Init(true)
 
-	//if err := initConfig(); err != nil {
-	//	log.Fatalf("can not read config file %s", err.Error())
-	//}
 	pool, err := pgxpool.New(ctx, "postgres://postgres:secret@order-db:5432/lampshop_orders?sslmode=disable")
+	//pool, err := pgxpool.New(ctx, "postgres://postgres:secret@localhost:5434/lampshop_orders?sslmode=disable")
 	if err != nil {
 		log.Fatalf("cannot connect to db: %v", err)
 	}

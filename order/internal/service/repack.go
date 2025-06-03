@@ -16,6 +16,7 @@ func toModelOrderList(sqlOrders []*sql.Order) []model.Order {
 func toModelOrder(o *sql.Order) model.Order {
 	return model.Order{
 		ID:        o.ID,
+		FullName:  o.CustomerFirstName + " " + o.CustomerLastName,
 		Status:    string(o.Status),
 		Total:     o.Total.InexactFloat64(),
 		IsActive:  o.IsActive,

@@ -175,6 +175,53 @@ func (q *Queries) GetAllOrders(ctx context.Context) ([]*Order, error) {
 	return items, nil
 }
 
+const getOrderItemsByOrderIDs = `-- name: GetOrderItemsByOrderIDs :many
+SELECT id         AS order_item_id,
+       order_id   AS order_item_order_id,
+       product_id AS order_item_product_id,
+       qty        AS order_item_quantity,
+       unit_price AS order_item_price
+FROM order_items
+WHERE order_id = ANY ($1::uuid[])
+`
+
+type GetOrderItemsByOrderIDsRow struct {
+	OrderItemID        uuid.UUID
+	OrderItemOrderID   uuid.UUID
+	OrderItemProductID uuid.UUID
+	OrderItemQuantity  int32
+	OrderItemPrice     decimal.Decimal
+}
+
+//  2. Получить все элементы сразу для массива order_id
+//     Мы передаём массив UUID, а SQL возвращает все rows из order_items,
+//     у которых order_id = ANY($1).
+func (q *Queries) GetOrderItemsByOrderIDs(ctx context.Context, dollar_1 []uuid.UUID) ([]*GetOrderItemsByOrderIDsRow, error) {
+	rows, err := q.db.Query(ctx, getOrderItemsByOrderIDs, dollar_1)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []*GetOrderItemsByOrderIDsRow
+	for rows.Next() {
+		var i GetOrderItemsByOrderIDsRow
+		if err := rows.Scan(
+			&i.OrderItemID,
+			&i.OrderItemOrderID,
+			&i.OrderItemProductID,
+			&i.OrderItemQuantity,
+			&i.OrderItemPrice,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, &i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getOrderStatus = `-- name: GetOrderStatus :one
 SELECT id, status, total
 FROM orders

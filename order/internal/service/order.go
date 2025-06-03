@@ -62,12 +62,81 @@ func (s *OrderService) CreateOrder(ctx context.Context, req model.CreateOrderReq
 func (s *OrderService) GetAllOrders(ctx context.Context) ([]model.Order, error) {
 	repo := sql.New(s.db)
 
-	resp, err := repo.GetAllOrders(ctx)
+	ordersRows, err := repo.GetAllOrders(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	return toModelOrderList(resp), nil
+	// Если заказов нет, сразу отдаём пустой срез
+	if len(ordersRows) == 0 {
+		return []model.Order{}, nil
+	}
+
+	// 2) Собираем слайс всех order_id, чтобы запросить элементы одним махом
+	var orderIDs []uuid.UUID
+	for _, o := range ordersRows {
+		orderIDs = append(orderIDs, o.ID)
+	}
+
+	// 3) Получаем все элементы, у которых order_id ∈ orderIDs
+	items, err := repo.GetOrderItemsByOrderIDs(ctx, orderIDs)
+	if err != nil {
+		return nil, fmt.Errorf("GetOrderItemsByOrderIDs failed: %w", err)
+	}
+
+	// 4) Распаковываем itemsRows в map: key=order_id.String() → []model.OrderItem
+	itemsMap := make(map[string][]model.OrderItem, len(orderIDs))
+	for _, ir := range items {
+		// Преобразуем ir.OrderItemPrice (decimal.Decimal) в float64
+		var priceFloat float64
+		switch v := any(ir.OrderItemPrice).(type) {
+		case decimal.Decimal:
+			pf, _ := v.Float64()
+			priceFloat = pf
+		default:
+			priceFloat = 0
+		}
+
+		oi := model.OrderItem{
+			ID:        ir.OrderItemID,
+			OrderID:   ir.OrderItemOrderID,
+			ProductID: ir.OrderItemProductID,
+			Quantity:  float64(ir.OrderItemQuantity),
+			Price:     priceFloat,
+		}
+		key := ir.OrderItemOrderID.String()
+		itemsMap[key] = append(itemsMap[key], oi)
+	}
+
+	// 5) Собираем финальный список заказов, подставляя в каждый его Items из itemsMap
+	var result []model.Order
+	for _, or := range ordersRows {
+		// Преобразуем or.Total (decimal.Decimal) в float64
+		var totalFloat float64
+		switch v := any(or.Total).(type) {
+		case decimal.Decimal:
+			tf, _ := v.Float64()
+			totalFloat = tf
+		default:
+			totalFloat = 0
+		}
+
+		fullName := or.CustomerFirstName + " " + or.CustomerLastName
+
+		o := model.Order{
+			ID:        or.ID,
+			Status:    string(or.Status),
+			FullName:  fullName,
+			Items:     itemsMap[or.ID.String()], // если нет элементов, itemsMap вернёт nil → JSON отдаст пустой массив
+			Total:     totalFloat,
+			IsActive:  or.IsActive,
+			CreatedAt: or.CreatedAt,
+			UpdatedAt: or.UpdatedAt,
+		}
+		result = append(result, o)
+	}
+
+	return result, nil
 }
 
 func (s *OrderService) GetActiveOrders(ctx context.Context) ([]model.Order, error) {

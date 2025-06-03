@@ -3,6 +3,18 @@ SELECT *
 FROM orders
 ORDER BY created_at DESC;
 
+-- 2) Получить все элементы сразу для массива order_id
+--    Мы передаём массив UUID, а SQL возвращает все rows из order_items,
+--    у которых order_id = ANY($1).
+-- name: GetOrderItemsByOrderIDs :many
+SELECT id         AS order_item_id,
+       order_id   AS order_item_order_id,
+       product_id AS order_item_product_id,
+       qty        AS order_item_quantity,
+       unit_price AS order_item_price
+FROM order_items
+WHERE order_id = ANY ($1::uuid[]);
+
 -- name: GetActiveOrders :many
 SELECT *
 FROM orders
