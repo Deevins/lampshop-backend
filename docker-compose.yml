@@ -1,0 +1,62 @@
+version: "3.8"
+
+services:
+  order-db:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: lampshop_orders
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: secret
+    ports:
+      - "5434:5432"
+    volumes:
+      - order-data:/var/lib/postgresql/data
+      - ./migrations/orders:/docker-entrypoint-initdb.d
+
+  product-db:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: lampshop_products
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: secret
+    ports:
+      - "5432:5432"
+    volumes:
+      - product-data:/var/lib/postgresql/data
+      - ./migrations/products:/docker-entrypoint-initdb.d
+
+  order-service:
+    build:
+      context: ./order
+      dockerfile: build/package/Dockerfile
+    depends_on:
+      - order-db
+    environment:
+      DB_HOST: order-db
+      DB_PORT: 5432
+      DB_USER: postgres
+      DB_PASSWORD: secret
+      DB_NAME: lampshop_orders
+      PORT: 8082
+    ports:
+      - "8082:8082"
+#
+  product-service:
+    build:
+      context: ./product
+      dockerfile: build/package/Dockerfile
+    depends_on:
+      - product-db
+    environment:
+      DB_HOST: product-db
+      DB_PORT: 5432
+      DB_USER: postgres
+      DB_PASSWORD: secret
+      DB_NAME: lampshop_products
+      PORT: 8081
+    ports:
+      - "8081:8081"
+
+volumes:
+  order-data:
+  product-data:
